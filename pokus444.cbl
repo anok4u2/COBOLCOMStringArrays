@@ -22,14 +22,20 @@ mftech copy olesafea.
 mftech 01  ws-stringArray               object reference.
 mftech 01  ws-vartype                   pic 9(4) comp-5.
 mftech 01  ws-dimension                 pic 9(4) comp-5.
-mftech 01  ws-saBound                   SAFEARRAYBOUND occurs 1.
+mftech 01  ws-saBound                   SAFEARRAYBOUND occurs 2.
 mftech 01  ws-iIndex                    pic 9(9) comp-5.
+mftech 01  ws-iIndex2d                  pic 9(9) comp-5 occurs 2.
 mftech 01  ws-len                       pic 9(9) comp-5.
 mftech 01  ws-hresult                   pic 9(9) comp-5.
-
+mftech 01  ws-2d-element.
+mftech     03  filler                   pic x(8) value "Element ".
+mftech     03  ws-sub1                  pic 9.
+mftech     03  filler                   pic x(3) value " : ".
+mftech     03  ws-sub2                  pic 9.
        procedure division.
        main section.
            display "Zacatek programu"
+
            initialize accA accR
            move '1234567890' to acc(1)
            move '0987654321' to acc(2)
@@ -76,5 +82,49 @@ mftech 01  ws-hresult                   pic 9(9) comp-5.
            invoke ChkAccNumObj "CheckAccount" using ws-stringArray
                                           returning accR
            display accR
+
+      ***** Finalize the OLESAFEARRAY 
+           invoke ws-stringArray "finalize" returning ws-stringArray
+
+      ***** We will now pass a 2D array into C#
+
+      ***** Create a 1 Dimension OLESAFEARRAY to pass string array
+           move VT-BSTR to ws-vartype
+           move 2 to ws-dimension
+           move 2 to cElements of ws-saBound(1)
+           move 0 to llBound of ws-saBound(1)
+           move 3 to cElements of ws-saBound(2)
+           move 0 to llBound of ws-saBound(2)
+           invoke OLESafeArray "new" using by value ws-vartype
+                                                    ws-dimension
+                                           by reference ws-saBound(1)
+                                 returning ws-stringArray
+           end-invoke
+      ***** We have the Array now populate it.
+      ***** 0 based array
+           perform varying ws-sub1 from 0 by 1 until ws-sub1 > 1
+               perform varying ws-sub2 from 0 by 1 until ws-sub2 > 2
+      ***** Populate Element in OLESAFEARRAY
+                   move ws-sub1 to ws-iIndex2d(1) 
+                   move ws-sub2 to ws-iIndex2d(2) 
+                   move length of ws-2d-element to ws-len
+                   invoke ws-stringArray "putString"
+                           using by reference ws-iIndex2d(1)
+                                 by value     ws-len
+                                 by reference ws-2d-element
+                       returning ws-hresult
+                   end-invoke
+                   if ws-hresult not = 0
+                       display "Die Gracefully"
+                       stop run
+                   end-if
+               end-perform
+           end-perform
+
+      ***** Pass across the OLESAFEARRAY
+           invoke ChkAccNumObj "CheckAccount2d" using ws-stringArray
+                                          returning accR
+           display accR
+
            stop run.
 
