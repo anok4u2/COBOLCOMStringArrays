@@ -23,6 +23,11 @@ namespace CheckAccountNumber
 
         public string CheckAccount(string[] accounts)
         {
+            // Show passed strings from COBOL
+            foreach(string str in accounts)
+            {
+                Console.WriteLine("From COBOL : " + str);
+            }
             return accounts[1];
         }
     }

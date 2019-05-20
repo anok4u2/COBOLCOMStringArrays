@@ -63,7 +63,7 @@ mftech 01  ws-hresult                   pic 9(9) comp-5.
            invoke ws-stringArray "putString"
                    using by reference ws-iIndex
                          by value ws-len
-                         by reference acc(1)
+                         by reference acc(2)
                returning ws-hresult
            end-invoke
            if ws-hresult not = 0
